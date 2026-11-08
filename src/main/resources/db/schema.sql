@@ -117,3 +117,43 @@ CREATE TABLE IF NOT EXISTS bi_sales_record (
     KEY idx_bi_sales_region (region_id),
     KEY idx_bi_sales_activity (activity_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT ='销售流水事实表';
+
+-- 对话式统计审计：一次提问一条，保留问题、解析规格、口径、筛选、结果指纹与结果快照
+CREATE TABLE IF NOT EXISTS bi_audit_log (
+    id              BIGINT        NOT NULL AUTO_INCREMENT COMMENT '审计ID',
+    trace_id        VARCHAR(64)   NOT NULL COMMENT '追溯ID（每次提问唯一）',
+    user_id         VARCHAR(128)  NOT NULL COMMENT '查询人',
+    role            VARCHAR(32)   NOT NULL COMMENT 'ADMIN/ANALYST/BUSINESS_USER/VIEWER',
+    scope_label     VARCHAR(256)           DEFAULT NULL COMMENT '区域数据范围',
+    question        LONGTEXT      NOT NULL COMMENT '原始自然语言问题',
+    metric_key      VARCHAR(64)            DEFAULT NULL COMMENT '指标编码',
+    metric_name     VARCHAR(128)           DEFAULT NULL COMMENT '指标显示名',
+    metric_caliber  LONGTEXT               DEFAULT NULL COMMENT '口径文本快照',
+    date_from       DATE                   DEFAULT NULL COMMENT '统计开始日',
+    date_to         DATE                   DEFAULT NULL COMMENT '统计结束日',
+    date_label      VARCHAR(128)           DEFAULT NULL COMMENT '区间自然语言标签',
+    group_by        VARCHAR(32)            DEFAULT NULL COMMENT '分组维度',
+    compare_type    VARCHAR(16)            DEFAULT NULL COMMENT 'mom/yoy',
+    filters_json    LONGTEXT               DEFAULT NULL COMMENT '解析后的筛选条件 JSON',
+    filters_text    LONGTEXT               DEFAULT NULL COMMENT '筛选条件可读文本',
+    row_count       INT                    DEFAULT 0 COMMENT '命中流水行数',
+    total_amount    DECIMAL(18,2)          DEFAULT NULL COMMENT '结果成交额',
+    total_quantity  BIGINT                 DEFAULT 0 COMMENT '结果销量',
+    answer          LONGTEXT               DEFAULT NULL COMMENT '自然语言结论',
+    result_hash     VARCHAR(64)            DEFAULT NULL COMMENT '结果指纹 SHA-256',
+    result_json     LONGTEXT               DEFAULT NULL COMMENT '结果快照 JSON（导出用）',
+    duration_ms     BIGINT                 DEFAULT 0 COMMENT '耗时毫秒',
+    status          VARCHAR(16)   NOT NULL COMMENT 'SUCCESS/FAILED/DENIED',
+    planner         VARCHAR(32)            DEFAULT NULL COMMENT 'LLM/RULE/RULE_FALLBACK',
+    llm_model       VARCHAR(128)           DEFAULT NULL COMMENT 'LLM 模型名',
+    llm_raw_output  LONGTEXT               DEFAULT NULL COMMENT 'LLM 原始输出（审计排查）',
+    llm_error       LONGTEXT               DEFAULT NULL COMMENT 'LLM 失败/回退原因',
+    error_message   LONGTEXT               DEFAULT NULL COMMENT '失败原因',
+    exported        TINYINT(1)    NOT NULL DEFAULT 0 COMMENT '是否导出',
+    exported_at     DATETIME(6)            DEFAULT NULL COMMENT '导出时间',
+    created_at      DATETIME(6)   NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_bi_audit_trace (trace_id),
+    KEY idx_bi_audit_user (user_id),
+    KEY idx_bi_audit_created (created_at)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci COMMENT ='对话式统计审计日志';

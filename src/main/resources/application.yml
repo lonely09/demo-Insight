@@ -6,13 +6,14 @@ spring:
     import:
       - optional:nacos:ai-knowledge
   application:
-    name: ai-knowledge-base
+    name: insight-server
+  # 注意：Nacos 上的中文 YAML 配置需要 JVM 以 UTF-8 运行，启动时加 -Dfile.encoding=UTF-8
   # ================= Nacos（注册中心 + 配置中心）=================
   # 注意：Nacos 3.x 的 8080 是【控制台】端口；客户端要连的是【服务端主端口】，默认 8848
   # 另外需放通 gRPC 端口 9848（=主端口+1000）和 9849（=主端口+1001）
   cloud:
     nacos:
-      server-addr: ${NACOS_SERVER_ADDR:192.168.1.120:8848}
+      server-addr: ${NACOS_SERVER_ADDR:192.168.1.121:8848}
       username: ${NACOS_USERNAME:nacos}
       password: ${NACOS_PASSWORD:Qaz123123}
       config:
@@ -22,66 +23,3 @@ spring:
       discovery:
         namespace: ${NACOS_NAMESPACE:ba3dfbf5-f6df-40af-9652-66d05c59bcba}
         group: ${NACOS_GROUP:DEFAULT_GROUP}
-
-# ================= 业务数据统计（对话式数据 Agent）=================
-bi:
-  # 启动时若业务数据表为空，自动造一批演示用假数据（已存在则跳过）
-  seed-on-startup: true
-  # 假数据覆盖的日期跨度（天），从"今天"往前推
-  seed-days: 120
-#
-#  # ================= MySQL（业务库 + 向量库）=================
-#  # TODO 上线前补全：库名、账号密码，推荐直接在 Nacos 配置中维护
-#  datasource:
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://${MYSQL_HOST:192.168.1.120}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:ai_work}?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&rewriteBatchedStatements=true
-#    username: ${MYSQL_USERNAME:mori}
-#    password: ${MYSQL_PASSWORD:Qaz123123}
-#    hikari:
-#      maximum-pool-size: 20
-#      connection-timeout: 10000
-#  jpa:
-#    hibernate:
-#      # 首次上线建议先执行 src/main/resources/db/schema.sql 建表，
-#      # 然后把这里改成 none；update 仅为开发期方便
-#      ddl-auto: update
-#    open-in-view: false
-#
-## ================= AI 知识库参数 =================
-#kb:
-#  # 文档切块
-#  chunk:
-#    max-chars: 500          # 每块最大字符数
-#    overlap-chars: 80       # 相邻块重叠字符数
-#  # Embedding 模型（OpenAI 兼容 /embeddings；阿里百炼 workspace 端点示例：
-#  #   https://{workspace}.cn-beijing.maas.aliyuncs.com/compatible-mode/v1）
-#  embedding:
-#    base-url: ${KB_EMBEDDING_BASE_URL:https://ws-uvwphlew3rkrvbbn.cn-beijing.maas.aliyuncs.com/compatible-mode/v1}
-#    api-key: ${KB_EMBEDDING_API_KEY:sk-ws-H.YILLRRM.THER.MEUCIQDj2jldGYQDkKqyMFji5uzmskd-BDfGMMbCbm5TjLYVAQIgehakwi_bN71PJVDCoAAlPBpyLDQeLW9dfKTo9JqAznI}
-#    model: ${KB_EMBEDDING_MODEL:qwen3.7-text-embedding-flash}
-#    # qwen3.7-text-embedding-flash 支持 256/512/768/1024，默认 1024；0 = 跟随模型默认
-#    dimension: ${KB_EMBEDDING_DIMENSION:1024}
-#    batch-size: 16
-#    timeout-ms: 30000
-#  # 生成模型（OpenAI 兼容 /chat/completions，同样走百炼兼容端点，模型按需替换如 qwen-plus/qwen-max）
-#  chat:
-#    base-url: ${KB_CHAT_BASE_URL:https://api.siliconflow.cn/v1}
-#    api-key: ${KB_CHAT_API_KEY:sk-gwpbxlidpewdkumjiomjrsopptoznbcnfekkzckkfkqnowte}
-#    model: ${KB_CHAT_MODEL:tencent/Hunyuan-MT-7B}
-#    # 0 = 贪心解码，同问题+同上下文 → 回答基本一致；>0 引入采样随机性
-#    temperature: 0.0
-#    max-tokens: 2000
-#    timeout-ms: 120000
-#  # 召回策略：BM25 + 向量 双路召回，RRF 融合
-#  retrieval:
-#    bm25-top-k: 10
-#    vector-top-k: 10
-#    min-vector-similarity: 0.3   # 向量路余弦下限：过滤小知识库下"强行 top-k"的无关召回；0 = 不启用
-#    final-top-k: 5
-#    rrf-k: 60               # RRF 平滑常数，默认 60
-#    bm25-k1: 1.2            # 词频饱和度
-#    bm25-b: 0.75            # 长度归一化
-#
-#logging:
-#  level:
-#    com.example.demo: INFO

@@ -1,6 +1,26 @@
-# springboot-demo — AI 知识库服务（集成业务用）
+# insight-server — AI 知识库服务（集成业务用）
 
 企业级 AI 知识库：文档入库自动切块、Embedding 向量化，检索走 **BM25 关键词召回 + 向量语义召回双链路，RRF 融合**，对外提供检索 API 与 RAG 问答 API。注册中心 / 配置中心集成 **Nacos**，**MySQL 同时作为业务库与向量库**。
+
+## 业务数据统计 Agent（对话式问数）
+
+项目同时包含一个面向业务人员的对话式数据统计 Agent：自然语言完成指标统计、筛选、分组对比、区域下钻、趋势与 CSV 导出，并保证**口径统一、区域权限合规、结果可追溯**。
+
+- 数据底座：渠道 / 商品 / 活动 / 区域维表 + 销售流水事实表，启动自动造约 3000 条演示数据
+- 自然语言规划：LLM 输出严格 JSON 的查询规格，失败自动回退规则解析；数字始终由统计引擎计算
+- MCP Server：`POST /mcp` 暴露 `bi_metrics` / `bi_ask` / `bi_parse` / `bi_trace`，供 Claude Desktop、Cursor、Dify 等调用
+- 前端页面：`D:\ai_work\insight-ai-web`（Vue 3 + Vite），入口 `http://localhost:5173/?view=bi-agent`
+- 详细设计、API、MCP、权限矩阵与示例问题：[BI_AGENT.md](BI_AGENT.md)
+
+默认使用 **Nacos + MySQL**（`mysql` profile），启动脚本：
+
+```bat
+cd /d D:\ai_work\insight-server
+run-mysql.cmd
+```
+
+> 必须带 `-Dfile.encoding=UTF-8` 启动，否则 Nacos 上的中文 YAML 在 Windows GBK 环境会解析失败；`run-mysql.cmd` 已处理。H2 仅作离线回退：`run-local.cmd`。
+
 
 ## 技术栈
 
@@ -16,7 +36,7 @@
 ## 目录结构
 
 ```
-com.example.demo.knowledgebase
+com.insightai.knowledgebase
 ├── config        KbProperties（kb.* 全量参数）/ KbConfig
 ├── domain        KbDocument / KbChunk（JPA 实体）
 ├── repository    Spring Data 仓库 + 向量/文本投影
@@ -98,7 +118,7 @@ curl -X POST http://localhost:8080/api/kb/documents/index/rebuild
 ```bat
 set JAVA_HOME=D:\Program Files\devlopertools\zulu-jdk-17
 mvnw.cmd clean package     :: 单测无需外部依赖（BM25/RRF/切块/余弦均为纯逻辑测试）
-java -jar target\springboot-demo-0.0.1-SNAPSHOT.jar
+java -jar target\insight-server-0.0.1-SNAPSHOT.jar
 ```
 
 ## 参数调优（kb.retrieval.*）
