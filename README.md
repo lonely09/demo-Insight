@@ -1,7 +1,7 @@
 # insight-server — AI 知识库服务（集成业务用）
 
 企业级 AI 知识库：文档入库自动切块、Embedding 向量化，检索走 **BM25 关键词召回 + 向量语义召回双链路，RRF 融合**，对外提供检索 API 与 RAG 问答 API。注册中心 / 配置中心集成 **Nacos**，**MySQL 同时作为业务库与向量库**。
-前端地址：[lonely09/java-8-lambdas-exercises](https://github.com/lonely09/demo-Insight-vue)
+前端地址：[demo-Insight-vue](https://github.com/lonely09/demo-Insight-vue)
 
 ## 业务数据统计 Agent（对话式问数）
 
